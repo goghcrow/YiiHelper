@@ -3,14 +3,13 @@ require_once '__.php';
 
 /**
  * Class YiiHelper
- * 依赖Yii的autoload
- *
+ *  1. 依赖Yii的autoload
+ *  2. api文档展示需要 urlManager 中的controller类与pattern一致
  * @author xiaofeng
  */
 class YiiHelper {
 
     const CONTROLLER_FILE_POSTFIX = 'Controller.php';
-    const TESTCASE_FILE_POSTFIX = '_Test.php';
 
 
     /**
@@ -207,24 +206,5 @@ class YiiHelper {
                 $isControllerFile = __::strEndWith($fileName, self::CONTROLLER_FILE_POSTFIX);
                 return $isControllerFile;
             });
-    }
-
-    /**
-     * 创建测试用例(_Test.php)迭代器
-     * @param $dirs
-     * @return AppendIterator
-     *
-     * @author xiaofeng
-     */
-    public static function testCaseFileIterator($dirs) /*:AppendIterator*/{
-        return __::fileIterator($dirs, function(SplFileInfo $current, $_, RecursiveIterator $iterator) {
-            // 允许递归遍历
-            if ($iterator->hasChildren()) {
-                return true;
-            }
-            $isTestCaseFile = $current->isFile() && $current->isReadable() &&
-                __::strEndWith($current->getFilename(), self::TESTCASE_FILE_POSTFIX);
-            return $isTestCaseFile;
-        });
     }
 }

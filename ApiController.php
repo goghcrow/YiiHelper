@@ -2,14 +2,14 @@
 require_once 'YiiHelper.php';
 
 /**
- * Yii api¿ØÖÆÆ÷»ùÀàÀý×Ó
+ * Yii apiæŽ§åˆ¶å™¨åŸºç±»ä¾‹å­
  * Class ApiController
  *
  * @author xiaofeng
  */
 class ApiController extends CController {
 
-    /* @var string ¿ØÖÆÆ÷id*/
+    /* @var string æŽ§åˆ¶å™¨id*/
     protected $controllerId;
 
     /* @var string actionid*/
@@ -19,47 +19,24 @@ class ApiController extends CController {
     protected $defaultActionId = 'index';
 
     /**
-     * ³õÊ¼»¯controllerIdÓëactionId
+     * Example
+     * åˆå§‹åŒ–controllerIdä¸ŽactionId
      * @return $this
      *
      * @author xiaofeng
      */
     public function initControllerActionId() {
+        $this->actionId = Yii::app()->getController()->defaultAction;
         $this->controllerId = Yii::app()->controller->id;
+
         $pageUrl = substr(Yii::app()->request->getUrl(), strlen(Yii::app()->request->baseurl));
-        $urlParams = substr($pageUrl, 1);
-        $paramArr = explode('/', $urlParams);
+        $paramArr = explode('/', substr($pageUrl, 1));
 
-        // $this->defaultActionId;
-        $defaultAction = Yii::app()->getController()->defaultAction;
-
-        if(count($paramArr) > 1 && (int)($paramArr[1]) > 0){
-            $this->actionId = $defaultAction;
-        } else {
-            if($urlParams && count($paramArr) > 1){
-                $this->actionId = ($paramArr[1] == '') ? 'index' : preg_replace('/^(.*)\?(.*)$/', '$1', $paramArr[1]);
-            } else {
-                $this->actionId = $defaultAction;
-            }
-            if($this->controllerId == ''){
-                $this->controllerId = $paramArr[0];
-            }
+        if(!empty($paramArr[1])){
+            $this->actionId = preg_replace('/^(.*)\?(.*)$/', '$1', $paramArr[1]);
         }
-
-        // controllerID Îª x/y¸ñÊ½µÄÇé¿ö
-        if(count($paramArr) >= 3) {
-            if($paramArr[0] == 'index.php') {
-                $this->controllerId = $paramArr[1];
-                $this->actionId = preg_replace('/^(.*)\?(.*)$/', '$1', $paramArr[2]);
-            } else {
-                $this->controllerId = $paramArr[0] . '/' . $paramArr[1];
-                $this->actionId = preg_replace('/^(.*)\?(.*)$/', '$1', $paramArr[2]);
-            }
-        }
-
-        $this->controllerId = $this->controllerId ?: $this->defaultControllerId;
-        $this->actionId = $this->actionId ?: $defaultAction;
     }
+
 
     public function init() {
         $this->initControllerActionId();
@@ -68,8 +45,8 @@ class ApiController extends CController {
     }
 
     /**
-     * Get »ñÈ¡API ÎÄµµ
-     * ¼Ù¶¨ËùÓÐ½Ó¿Ú½öÄÜÍ¨¹ýPOST·½Ê½·ÃÎÊ£¬ÆäËû·½Ê½¾ù·µ»ØÎÄµµ
+     * Get èŽ·å–API æ–‡æ¡£
+     * å‡å®šæ‰€æœ‰æŽ¥å£ä»…èƒ½é€šè¿‡POSTæ–¹å¼è®¿é—®ï¼Œå…¶ä»–æ–¹å¼å‡è¿”å›žæ–‡æ¡£
      * @param string $actionID
      * @return CAction|CInlineAction
      * @throws CException
@@ -83,12 +60,12 @@ class ApiController extends CController {
         }
 
         $api = $this->apiDcoumentDispatcher(function($controllerId) {
-            // ÅÅ³ýhome¿ØÖÆÆ÷
+            // æŽ’é™¤homeæŽ§åˆ¶å™¨
             return !in_array(strtolower($controllerId), ['home'], true);
         });
 
         if($api) {
-            // FIXME ÓÃyiiµÄ $this->renderPartial()·½·¨ÖØÐ´
+            // FIXME ç”¨yiiçš„ $this->renderPartial()æ–¹æ³•é‡å†™
             Yii::app()->end(include __DIR__ . '/views/apidoc.php');
         } else {
             throw new CHttpException(403);
@@ -96,7 +73,7 @@ class ApiController extends CController {
     }
 
     /**
-     * apiÎÄµµDispatcher
+     * apiæ–‡æ¡£Dispatcher
      * @param callable|null $filter
      * @return array
      *
@@ -104,19 +81,19 @@ class ApiController extends CController {
      */
     public function apiDcoumentDispatcher(callable $filter = null) {
 
-        // ·ÃÎÊÄ¬ÈÏ¿ØÖÆÆ÷, »ñÈ¡ËùÓÐapicontrollerÎÄ¼þÎÄµµ
+        // è®¿é—®é»˜è®¤æŽ§åˆ¶å™¨, èŽ·å–æ‰€æœ‰apicontrolleræ–‡ä»¶æ–‡æ¡£
         if($this->controllerId === $this->defaultControllerId) {
             $controllerIdGenerator = YiiHelper::controllerIdGenerator(__DIR__ . '/../controllers');
             $api = YiiHelper::apiInfo($controllerIdGenerator, $filter);
         }
 
-        // ·ÃÎÊµ±Ç°¿ØÖÆÆ÷Ä¬ÈÏ·½·¨£¬»ñÈ¡µ±Ç°apicontrollerÎÄµµ
+        // è®¿é—®å½“å‰æŽ§åˆ¶å™¨é»˜è®¤æ–¹æ³•ï¼ŒèŽ·å–å½“å‰apicontrolleræ–‡æ¡£
         else if($this->actionId === $this->defaultActionId) {
             $controllerIdGenerator = __::var2Generator($this->controllerId);
             $api = YiiHelper::apiInfo($controllerIdGenerator, $filter);
         }
 
-        // ·µ»Ø¾ßÌåcontrollerId/actionIdÎÄµµ
+        // è¿”å›žå…·ä½“controllerId/actionIdæ–‡æ¡£
         else {
             $controllerIdGenerator = __::var2Generator($this->controllerId);
             $api = YiiHelper::apiInfo($controllerIdGenerator, $filter);

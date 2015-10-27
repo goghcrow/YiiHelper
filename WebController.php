@@ -2,63 +2,52 @@
 require_once 'YiiHelper.php';
 
 /**
- * Yii web¿ØÖÆÆ÷»ùÀàÀı×Ó
+ * Yii webæ§åˆ¶å™¨åŸºç±»ä¾‹å­
  * Class WebController
  *
  * @author xiaofeng
  */
 class WebController extends CController {
 
-    /* @var string ¿ØÖÆÆ÷id*/
+    /* @var string æ§åˆ¶å™¨id*/
     protected $controllerId;
 
     /* @var string actionid*/
     protected $actionId;
 
     protected $defaultControllerId = 'home';
-    protected $defaultActionId = 'index';
 
     /**
-     * ³õÊ¼»¯controllerIdÓëactionId
+     * è·å–å­ç±»æ§åˆ¶å™¨åç§°hacker
+     * @author xiaofeng
+     */
+    public static function getControllerName()
+    {
+        return lcfirst(substr(static::class, 0, -strlen('Controller')));
+    }
+
+    public function __construct()
+    {
+        parent::__construct(self::getControllerName());
+    }
+
+    /**
+     * Example
+     * åˆå§‹åŒ–controllerIdä¸actionId
      * @return $this
      *
      * @author xiaofeng
      */
     public function initControllerActionId() {
+        $this->actionId = Yii::app()->getController()->defaultAction;
         $this->controllerId = Yii::app()->controller->id;
+
         $pageUrl = substr(Yii::app()->request->getUrl(), strlen(Yii::app()->request->baseurl));
-        $urlParams = substr($pageUrl, 1);
-        $paramArr = explode('/', $urlParams);
+        $paramArr = explode('/', substr($pageUrl, 1));
 
-        // $this->defaultActionId;
-        $defaultAction = Yii::app()->getController()->defaultAction;
-
-        if(count($paramArr) > 1 && (int)($paramArr[1]) > 0){
-            $this->actionId = $defaultAction;
-        } else {
-            if($urlParams && count($paramArr) > 1){
-                $this->actionId = ($paramArr[1] == '') ? 'index' : preg_replace('/^(.*)\?(.*)$/', '$1', $paramArr[1]);
-            } else {
-                $this->actionId = $defaultAction;
-            }
-            if($this->controllerId == ''){
-                $this->controllerId = $paramArr[0];
-            }
+        if(!empty($paramArr[1])){
+            $this->actionId = preg_replace('/^(.*)\?(.*)$/', '$1', $paramArr[1]);
         }
-
-        // controllerID Îª x/y¸ñÊ½µÄÇé¿ö
-        if(count($paramArr) >= 3) {
-            if($paramArr[0] == 'index.php') {
-                $this->controllerId = $paramArr[1];
-                $this->actionId = preg_replace('/^(.*)\?(.*)$/', '$1', $paramArr[2]);
-            } else {
-                $this->controllerId = $paramArr[0] . '/' . $paramArr[1];
-                $this->actionId = preg_replace('/^(.*)\?(.*)$/', '$1', $paramArr[2]);
-            }
-        }
-
-        $this->controllerId = $this->controllerId ?: $this->defaultControllerId;
-        $this->actionId = $this->actionId ?: $defaultAction;
     }
 
     public function init() {
@@ -70,8 +59,8 @@ class WebController extends CController {
 
     public function getAuthZip() {
         $roleGroup = [
-            '¹ÜÀíÔ±' => ['ºóÌ¨ÉèÖÃ', 'ÓÃ»§¹ÜÀí', 'ËÙµİ¹ÜÀí', 'Íøµã¹ÜÀí', 'ÔËµ¥¹ÜÀí'],
-            'ºóÌ¨ÓªÔË' => ['ÓÃ»§¹ÜÀí', 'ËÙµİ¹ÜÀí', 'Íøµã¹ÜÀí', 'ÔËµ¥¹ÜÀí'],
+            'ç®¡ç†å‘˜' => ['åå°è®¾ç½®', 'ç”¨æˆ·ç®¡ç†', 'é€Ÿé€’ç®¡ç†', 'ç½‘ç‚¹ç®¡ç†', 'è¿å•ç®¡ç†'],
+            'åå°è¥è¿' => ['ç”¨æˆ·ç®¡ç†', 'é€Ÿé€’ç®¡ç†', 'ç½‘ç‚¹ç®¡ç†', 'è¿å•ç®¡ç†'],
         ];
 
         list($access, $roles) = self::accessRoles(__DIR__ . '/../controllers', $roleGroup, function($controllerId, $actionId) {
@@ -122,7 +111,7 @@ class WebController extends CController {
                     $roles[$role][] = $url;
                 }
             } else {
-                // $roles['Î´·Ö×é'][] = $url;
+                // $roles['æœªåˆ†ç»„'][] = $url;
             }
         }
         return [$access, $roles];
